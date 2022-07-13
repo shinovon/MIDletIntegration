@@ -12,7 +12,7 @@ import java.util.Hashtable;
  */
 public class Util {
 	
-	static Hashtable parseArgs(String str) {
+	public static Hashtable parseArgs(String str) {
 		if(str == null) {
 			return null;
 		}
@@ -35,7 +35,7 @@ public class Util {
 		return ht;
 	}
 	
-	static String decodeURL(String s) {
+	public static String decodeURL(String s) {
 		boolean needToChange = false;
 		int numChars = s.length();
 		StringBuffer sb = new StringBuffer(numChars > 500 ? numChars / 2 : numChars);
@@ -78,7 +78,7 @@ public class Util {
 		return (needToChange ? sb.toString() : s);
 	}
 	
-	static String encodeURL(String url) {
+	public static String encodeURL(String url) {
 		StringBuffer sb = new StringBuffer();
 		char[] chars = url.toCharArray();
 		for (int i = 0; i < chars.length; i++) {

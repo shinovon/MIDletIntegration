@@ -1,0 +1,10 @@
+Nokia-MIDlet-Background-Event: pause
+MIDlet-Vendor: Example
+MIDlet-Version: 1.0.0
+MicroEdition-Configuration: CLDC-1.0
+Nokia-MIDlet-UID-1: 0xA0001234
+Nokia-MIDlet-Launch-Params: url
+MIDlet-1: Receiver Example,,ReceiverMidlet
+MIDlet-Name: Receiver Example
+MicroEdition-Profile: MIDP-2.0
+MIDlet-Jar-URL: ReceiverExample.jar

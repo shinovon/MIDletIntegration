@@ -1,0 +1,7 @@
+MIDlet-Vendor: Example
+MIDlet-Version: 1.0.0
+MicroEdition-Configuration: CLDC-1.0
+MIDlet-1: Runner Example,,RunnerMIDlet
+MIDlet-Name: Runner Example
+MicroEdition-Profile: MIDP-2.0
+MIDlet-Jar-URL: RunnerExample.jar
