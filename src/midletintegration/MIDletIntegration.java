@@ -91,7 +91,7 @@ public class MIDletIntegration {
 				
 			}
 		} else {
-			args = Util.decodeURL(System.getProperty("com.nokia.mid.cmdline"));
+			args = System.getProperty("com.nokia.mid.cmdline");
 		}
 		if("empty=1".equals(args)) {
 			return "";
