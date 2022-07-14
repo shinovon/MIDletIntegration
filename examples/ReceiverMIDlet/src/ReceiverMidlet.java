@@ -10,6 +10,14 @@ import javax.microedition.midlet.MIDlet;
 import midletintegration.MIDletIntegration;
 import midletintegration.Util;
 
+/**
+ * Receiver MIDlet Example
+ * 
+ * @author Shinovon
+ * @author curoviyxru (Mathew)
+ * @version 1.0
+ * 
+ */
 public class ReceiverMidlet extends MIDlet implements CommandListener {
 	
 	private final Command updateCmd = new Command("Update", Command.OK, 1);

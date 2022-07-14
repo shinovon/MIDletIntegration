@@ -7,7 +7,7 @@ import java.util.Hashtable;
  * Part of MIDlet Integration library
  * 
  * @author Shinovon
- * @version 0.1
+ * @version 1.0
  * 
  */
 public class Util {

@@ -12,6 +12,14 @@ import midletintegration.MIDletIntegration;
 import midletintegration.MIDletNotFoundException;
 import midletintegration.ProtocolNotSupportedException;
 
+/**
+ * Runner MIDlet Example
+ * 
+ * @author Shinovon
+ * @author curoviyxru (Mathew)
+ * @version 1.0
+ * 
+ */
 public class RunnerMIDlet extends MIDlet implements CommandListener {
 
 	private final Command runCmd = new Command("Run", Command.OK, 1);
@@ -34,7 +42,7 @@ public class RunnerMIDlet extends MIDlet implements CommandListener {
 	public void commandAction(Command c, Displayable d) {
 		if(c == runCmd) {
 			try {
-				if(MIDletIntegration.startApp(this, "Receiver Example", "Example", 1270, "url=" + Util.encodeURL(urlField.getString()))) {
+				if(MIDletIntegration.startApp(this, "Receiver Example", "Example", "0xA0001234", 1270, "url=" + Util.encodeURL(urlField.getString()))) {
 					notifyDestroyed();
 				}
 			} catch (MIDletNotFoundException e) {

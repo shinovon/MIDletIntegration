@@ -15,7 +15,7 @@ import javax.microedition.midlet.MIDlet;
  * 
  * @author Shinovon
  * @author curoviyxru (Mathew)
- * @version 0.1
+ * @version 1.0
  * 
  */
 public class MIDletIntegration {
@@ -33,16 +33,14 @@ public class MIDletIntegration {
 	/**
 	 * Checks if a MIDlet has received a new start request from another MIDlet<br>
 	 * Recommended to use in startApp() with "Nokia-MIDlet-Background-Event: pause" property in MANIFEST.MF<br>
-	 * After receiving a request, you should receive arguments from System.getProperty() or checkStartArguments()
-	 * @see {@link #getAllLaunchArguments()}
-	 * @see {@link java.lang.System#getProperty(String)}
+	 * After receiving a request, you should receive arguments from getLaunchCommand()
+	 * @see {@link #getLaunchCommand()}
 	 * @return true if new arguments have been received since the last check
 	 */
 	public static boolean checkLaunch() {
 		if(receiving) return false;
 		try {
 			if(PushRegistry.listConnections(true).length > 0) {
-				System.out.println("checkLaunch true");
 				return true;
 			}
 		} catch (Throwable e) {
