@@ -35,10 +35,10 @@ public class ReceiverMidlet extends MIDlet implements CommandListener {
 
 	private void check() {
 		form.deleteAll();
-		if(MIDletIntegration.checkLaunchArguments()) {
+		if(MIDletIntegration.checkLaunch()) {
 			form.append("Launch request detected!\n");
 			form.append("URL: " + Util.decodeURL(System.getProperty("url")) + "\n");
-			form.append("Full command: " + MIDletIntegration.getAllLaunchArguments().toString() + "\n");
+			form.append("Full command: " + MIDletIntegration.getLaunchCommand() + "\n");
 		}
 	}
 

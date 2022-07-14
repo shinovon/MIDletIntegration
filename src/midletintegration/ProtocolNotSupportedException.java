@@ -10,6 +10,10 @@ import java.io.IOException;
  * 
  */
 public class ProtocolNotSupportedException extends IOException {
+
+	public ProtocolNotSupportedException() {
+		super();
+	}
 	
 	public ProtocolNotSupportedException(String s) {
 		super(s);

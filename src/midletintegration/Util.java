@@ -36,6 +36,9 @@ public class Util {
 	}
 	
 	public static String decodeURL(String s) {
+		if(s == null) {
+			return null;
+		}
 		boolean needToChange = false;
 		int numChars = s.length();
 		StringBuffer sb = new StringBuffer(numChars > 500 ? numChars / 2 : numChars);
@@ -78,9 +81,12 @@ public class Util {
 		return (needToChange ? sb.toString() : s);
 	}
 	
-	public static String encodeURL(String url) {
+	public static String encodeURL(String s) {
+		if(s == null) {
+			return null;
+		}
 		StringBuffer sb = new StringBuffer();
-		char[] chars = url.toCharArray();
+		char[] chars = s.toCharArray();
 		for (int i = 0; i < chars.length; i++) {
 			int c = chars[i];
 			if (65 <= c && c <= 90) {
