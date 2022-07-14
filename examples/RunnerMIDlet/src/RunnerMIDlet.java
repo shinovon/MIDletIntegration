@@ -34,10 +34,9 @@ public class RunnerMIDlet extends MIDlet implements CommandListener {
 	public void commandAction(Command c, Displayable d) {
 		if(c == runCmd) {
 			try {
-				if(MIDletIntegration.startApp(this, "Receiver Example", "Example", "url=" + Util.encodeURL(urlField.getString()))) {
+				if(MIDletIntegration.startApp(this, "Receiver Example", "Example", 1270, "url=" + Util.encodeURL(urlField.getString()))) {
 					notifyDestroyed();
 				}
-				alert("Run success!");
 			} catch (MIDletNotFoundException e) {
 				alert("MIDlet not found!");
 				e.printStackTrace();

@@ -23,6 +23,8 @@ public class MIDletIntegration {
 	private static final String PROTOCOL = "javaapp:";
 	
 	private static int instances;
+	private static DatagramConnection dataConnection;
+	private static boolean receiving;
 	
 	/**
 	 * Checks if a MIDlet has received a new start request from another MIDlet<br>
@@ -33,8 +35,10 @@ public class MIDletIntegration {
 	 * @return true if new arguments have been received since the last check
 	 */
 	public static boolean checkLaunch() {
+		if(receiving) return false;
 		try {
 			if(PushRegistry.listConnections(true).length > 0) {
+				System.out.println("checkLaunch true");
 				return true;
 			}
 		} catch (Throwable e) {
@@ -43,7 +47,7 @@ public class MIDletIntegration {
 			return false;
 		}
 		try {
-			int i = Integer.parseInt(System.getProperty("com.nokia.mid.cmdline.instance")) ;
+			int i = Integer.parseInt(System.getProperty("com.nokia.mid.cmdline.instance"));
 			if(i > instances) {
 				instances = i;
 				String cmd = System.getProperty("com.nokia.mid.cmdline");
@@ -60,41 +64,52 @@ public class MIDletIntegration {
 	
 	/**
 	 * Gets received command
+	 * 
 	 * @see {@link #checkLaunch()}
 	 * @see {@link java.lang.System#getProperty(String)}
 	 * @return Received command
 	 */
 	public static String getLaunchCommand() {
-		String[] arr = PushRegistry.listConnections(true);
-		if(arr.length > 0) {
-			String args = null;
-			 try {
-                 DatagramConnection conn = (DatagramConnection) Connector.open(arr[0]);
-                 Datagram data = conn.newDatagram(conn.getMaximumLength());
-                 conn.receive(data);
-                 args = data.readUTF();
-                 data.reset();
-                 data.write(1);
-                 conn.close();
-             } catch (IOException e) {
-            	 e.printStackTrace();
-             }
-			 return args;
+		receiving = true;
+		String args = null;
+		String[] arr = null;
+		try {
+			arr = PushRegistry.listConnections(true);
+		} catch (Throwable e) {
 		}
-		String args = Util.decodeURL(System.getProperty("com.nokia.mid.cmdline"));
+		if(arr != null && arr.length > 0) {
+			try {
+				DatagramConnection conn = (DatagramConnection) Connector.open(arr[0]);
+				Thread.sleep(500);
+				Datagram data = conn.newDatagram(conn.getMaximumLength());
+				conn.receive(data);
+				args = data.readUTF();
+				conn.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				
+			}
+		} else {
+			args = Util.decodeURL(System.getProperty("com.nokia.mid.cmdline"));
+		}
+		if("empty=1".equals(args)) {
+			return "";
+		}
+		receiving = false;
 		return args;
 	}
 	
 	/**
-	 * Converts received commands to arguments table
+	 * Converts string to arguments table
+	 * 
 	 * @see {@link java.util.Hashtable}
-	 * @see {@link #checkLaunch()}
 	 * @see {@link #getLaunchCommand()}
 	 * @see {@link midletintegration.Util#parseArgs(String)}
 	 * @return Arguments table or null
 	 */
-	public static Hashtable getLaunchArgumentsTable() {
-		return Util.parseArgs(getLaunchCommand());
+	public static Hashtable getArguments(String s) {
+		return Util.parseArgs(s);
 	}
 	
 	/**
@@ -126,7 +141,7 @@ public class MIDletIntegration {
 	 * @throws ConnectionNotFoundException
 	 */
 	public static boolean startApp(MIDlet midlet, String name, String vendor, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, ConnectionNotFoundException {
-		return startApp(midlet, "midlet-name=" + Util.encodeURL(name) + ";midlet-vendor=" + Util.encodeURL(vendor) + (cmd != null && cmd.length() > 0 ? ";" + Util.encodeURL(cmd) : ""));
+		return startApp(midlet, "midlet-name=" + Util.encodeURL(name) + ";midlet-vendor=" + Util.encodeURL(vendor) + ";" + (cmd != null && cmd.length() > 0 ? Util.encodeURL(cmd) : "empty=1"));
 	}
 
 	
@@ -162,9 +177,6 @@ public class MIDletIntegration {
 	}
 	
 	private static boolean startApp(MIDlet midlet, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, ConnectionNotFoundException {
-		if(System.getProperty("com.nokia.mid.cmdline.instance") == null) {
-			throw new ProtocolNotSupportedException();
-		}
 		try {
 			return midlet.platformRequest(PROTOCOL + cmd);
 		} catch (ConnectionNotFoundException e) {
@@ -203,6 +215,8 @@ public class MIDletIntegration {
 		}
 		return startApp(midlet, pushPort, cmd);
 	}
+
+	private static Exception exception;
 	
 	/**
 	 * Runs a MIDlet by Push port
@@ -214,22 +228,56 @@ public class MIDletIntegration {
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
 	 * @throws ConnectionNotFoundException
 	 */
-	public static boolean startApp(MIDlet midlet, int pushPort, String cmd) throws ProtocolNotSupportedException, IOException {
+	public static boolean startApp(MIDlet midlet, final int pushPort, String cmd) throws ProtocolNotSupportedException, IOException {
+		if(dataConnection != null) {
+			throw new IllegalStateException();
+		}
+		exception = null;
 		try {
 			if(cmd == null) {
-				cmd = "";
+				cmd = "empty=1";
 			}
-			DatagramConnection conn = (DatagramConnection) Connector.open("datagram://127.0.0.1:" + pushPort);
-	        Datagram data = conn.newDatagram(conn.getMaximumLength());
-	        data.reset();
-	        data.writeUTF(cmd);
-	        conn.send(data);
-	        data.reset();
-	        conn.receive(data);
-	        conn.close();
-	        try {
-				Thread.sleep(1000L);
-			} catch (InterruptedException e) {
+			final String s = cmd;
+			final Object lock = new Object();
+			Thread thread = new Thread() {
+				public void run() {
+					try {
+						dataConnection = (DatagramConnection) Connector.open("datagram://127.0.0.1:" + pushPort);
+						Datagram data = dataConnection.newDatagram(dataConnection.getMaximumLength());
+						data.reset();
+						data.writeUTF(s);
+						dataConnection.send(data);
+						dataConnection.send(data);
+						dataConnection.close();
+					} catch (IOException e) {
+						exception = e;
+					} catch (Exception e) {
+					}
+			        dataConnection = null;
+			        synchronized(lock) {
+			        	lock.notify();
+			        }
+				}
+			};
+			thread.start();
+			try {
+				synchronized(lock) {
+					lock.wait(5000);
+				}
+			} catch (Exception e) {
+			}
+			if(dataConnection != null) {
+				thread.interrupt();
+				try {
+					dataConnection.close();
+				} catch (Exception e) {
+				}
+				throw new MIDletNotFoundException();
+			}
+			if(exception != null) {
+				IOException e = (IOException) exception;
+				exception = null;
+				throw e;
 			}
 			return true;
 		} catch (Error e) {

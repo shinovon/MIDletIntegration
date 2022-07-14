@@ -1,3 +1,5 @@
+import java.util.Hashtable;
+
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Display;
@@ -12,10 +14,12 @@ public class ReceiverMidlet extends MIDlet implements CommandListener {
 	
 	private final Command updateCmd = new Command("Update", Command.OK, 1);
 	private Form form = new Form("Receiver Example");
+	//private Thread thread;
 
 	private static boolean started;
 
 	protected void destroyApp(boolean b) {
+		//thread.interrupt();
 	}
 
 	protected void pauseApp() {
@@ -26,19 +30,46 @@ public class ReceiverMidlet extends MIDlet implements CommandListener {
 			check();
 			return;
 		}
+		try {
+			MIDletIntegration.registerPush(this, 1270);
+		} catch (Exception e) {
+			form.append("Push registration failed: " + e.toString() + "\n");
+		}
 		started = true;
 		form.addCommand(updateCmd);
 		form.setCommandListener(this);
 		Display.getDisplay(this).setCurrent(form);
 		check();
+		/*
+		thread = new Thread() {
+			public void run() {
+				try {
+					while(true) {
+						Thread.sleep(1000);
+						check();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		thread.start();
+		*/
 	}
 
 	private void check() {
-		form.deleteAll();
-		if(MIDletIntegration.checkLaunch()) {
-			form.append("Launch request detected!\n");
-			form.append("URL: " + Util.decodeURL(System.getProperty("url")) + "\n");
-			form.append("Full command: " + MIDletIntegration.getLaunchCommand() + "\n");
+		try {
+			if(MIDletIntegration.checkLaunch()) {
+				form.append("Launch request detected!\n");
+				String s = MIDletIntegration.getLaunchCommand();
+				Hashtable args = MIDletIntegration.getArguments(s);
+				form.append("URL: " + Util.decodeURL((String) args.get("url")) + "\n");
+				form.append("Full command: " + s+ "\n");
+				this.resumeRequest();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			form.append(e.toString() + "\n");
 		}
 	}
 

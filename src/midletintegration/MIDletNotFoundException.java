@@ -11,6 +11,10 @@ import java.io.IOException;
  */
 public class MIDletNotFoundException extends IOException {
 
+	public MIDletNotFoundException() {
+		super();
+	}
+
 	public MIDletNotFoundException(String s) {
 		super(s);
 	}
