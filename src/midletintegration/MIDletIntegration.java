@@ -15,7 +15,7 @@ import javax.microedition.midlet.MIDlet;
  * 
  * @author Shinovon
  * @author curoviyxru (Mathew)
- * @version 1.0
+ * @version 1.1
  * 
  */
 public class MIDletIntegration {
@@ -95,7 +95,7 @@ public class MIDletIntegration {
 			args = System.getProperty("com.nokia.mid.cmdline");
 		}
 		if("empty=1".equals(args)) {
-			return "";
+			args = "";
 		}
 		receiving = false;
 		return args;
