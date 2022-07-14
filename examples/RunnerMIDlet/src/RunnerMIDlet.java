@@ -8,6 +8,7 @@ import javax.microedition.lcdui.TextField;
 import javax.microedition.midlet.MIDlet;
 
 import midletintegration.Util;
+import midletintegration.AppsDB;
 import midletintegration.MIDletIntegration;
 import midletintegration.MIDletNotFoundException;
 import midletintegration.ProtocolNotSupportedException;
@@ -34,7 +35,7 @@ public class RunnerMIDlet extends MIDlet implements CommandListener {
 	public void commandAction(Command c, Displayable d) {
 		if(c == runCmd) {
 			try {
-				if(MIDletIntegration.startApp(this, "Receiver Example", "Example", 1270, "url=" + Util.encodeURL(urlField.getString()))) {
+				if(MIDletIntegration.startApp(this, AppsDB.ExampleReceiver, "url=" + Util.encodeURL(urlField.getString()))) {
 					notifyDestroyed();
 				}
 			} catch (MIDletNotFoundException e) {
