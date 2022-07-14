@@ -22,9 +22,9 @@ public class MIDletIntegration {
 	
 	private static final String PROTOCOL = "javaapp:";
 	private static final boolean closeAfterPush = 
-			!(System.getProperty("com.symbian.midp.serversocket.support") != null ||
-					System.getProperty("com.symbian.default.to.suite.icon") != null ||
-					System.getProperty("microedition.platform").indexOf("platform=S60") != -1);
+			System.getProperty("com.symbian.midp.serversocket.support") == null &&
+					System.getProperty("com.symbian.default.to.suite.icon") == null &&
+					System.getProperty("microedition.platform").indexOf("platform=S60") == -1;
 	
 	private static int instances;
 	private static DatagramConnection dataConnection;
@@ -123,7 +123,6 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
-	 * @throws ConnectionNotFoundException
 	 */
 	public static boolean startApp(MIDlet midlet, String name, String vendor) throws MIDletNotFoundException, ProtocolNotSupportedException, ConnectionNotFoundException {
 		return startApp(midlet, name, vendor, null);
@@ -139,7 +138,6 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
-	 * @throws ConnectionNotFoundException
 	 */
 	public static boolean startApp(MIDlet midlet, String name, String vendor, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, ConnectionNotFoundException {
 		return startApp(midlet, "midlet-name=" + Util.encodeURL(name) + ";midlet-vendor=" + Util.encodeURL(vendor) + ";" + (cmd != null && cmd.length() > 0 ? Util.encodeURL(cmd) : "empty=1"));
@@ -155,7 +153,6 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
-	 * @throws ConnectionNotFoundException
 	 */
 	public static boolean startAppWithAppUID(MIDlet midlet, String uid) throws MIDletNotFoundException, ProtocolNotSupportedException, ConnectionNotFoundException {
 		return startAppWithAppUID(midlet, uid, null);
@@ -171,7 +168,6 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
-	 * @throws ConnectionNotFoundException
 	 */
 	public static boolean startAppWithAppUID(MIDlet midlet, String uid, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, ConnectionNotFoundException {
 		return startApp(midlet, "midlet-uid=" + Util.encodeURL(uid) + ";" + (cmd != null && cmd.length() > 0 ? Util.encodeURL(cmd) : "empty=1"));
@@ -208,9 +204,8 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
-	 * @throws ConnectionNotFoundException
 	 */
-	public static boolean startApp(MIDlet midlet, String name, String vendor, String uid, int pushPort, String cmd) throws ProtocolNotSupportedException, IOException {
+	public static boolean startApp(MIDlet midlet, String name, String vendor, String uid, int pushPort, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, IOException {
 		try {
 			if(System.getProperty("com.nokia.mid.cmdline.instance") != null) {
 				if(uid != null) {
@@ -233,9 +228,8 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
-	 * @throws ConnectionNotFoundException
 	 */
-	public static boolean startApp(MIDlet midlet, String name, String vendor, int pushPort, String cmd) throws ProtocolNotSupportedException, IOException {
+	public static boolean startApp(MIDlet midlet, String name, String vendor, int pushPort, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, IOException {
 		try {
 			if(System.getProperty("com.nokia.mid.cmdline.instance") != null) {
 				return startApp(midlet, name, vendor, cmd);
@@ -255,9 +249,8 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
-	 * @throws ConnectionNotFoundException
 	 */
-	public static boolean startApp(MIDlet midlet, final int pushPort, String cmd) throws ProtocolNotSupportedException, IOException {
+	public static boolean startApp(MIDlet midlet, final int pushPort, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, IOException {
 		if(dataConnection != null) {
 			throw new IllegalStateException();
 		}
