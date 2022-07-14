@@ -21,6 +21,10 @@ import javax.microedition.midlet.MIDlet;
 public class MIDletIntegration {
 	
 	private static final String PROTOCOL = "javaapp:";
+	private static final boolean closeAfterPush = 
+			!(System.getProperty("com.symbian.midp.serversocket.support") != null ||
+					System.getProperty("com.symbian.default.to.suite.icon") != null ||
+					System.getProperty("microedition.platform").indexOf("platform=S60") != -1);
 	
 	private static int instances;
 	private static DatagramConnection dataConnection;
@@ -80,7 +84,6 @@ public class MIDletIntegration {
 		if(arr != null && arr.length > 0) {
 			try {
 				DatagramConnection conn = (DatagramConnection) Connector.open(arr[0]);
-				Thread.sleep(500);
 				Datagram data = conn.newDatagram(conn.getMaximumLength());
 				conn.receive(data);
 				args = data.readUTF();
@@ -197,8 +200,36 @@ public class MIDletIntegration {
 	}
 	
 	/**
+	 * Runs a MIDlet by Name/Vendor, UID or Push port with arguments
+	 * @param midlet Current MIDlet instance
+	 * @param name MIDlet-Name
+	 * @param vendor MIDlet-Vendor
+	 * @param pushPort Push port
+	 * @param uid App's "Nokia-MIDlet-UID-1" value
+	 * @param cmd Command
+	 * @return true if the MIDlet suite MUST exit
+	 * @throws MIDletNotFoundException if MIDlet was not found
+	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
+	 * @throws ConnectionNotFoundException
+	 */
+	public static boolean startApp(MIDlet midlet, String name, String vendor, String uid, int pushPort, String cmd) throws ProtocolNotSupportedException, IOException {
+		try {
+			if(System.getProperty("com.nokia.mid.cmdline.instance") != null) {
+				if(uid != null) {
+					return MIDletIntegration.startAppWithAppUID(midlet, uid, cmd);
+				}
+				return startApp(midlet, name, vendor, cmd);
+			}
+		} catch (IOException e) {
+		}
+		return startApp(midlet, pushPort, cmd);
+	}
+	
+	/**
 	 * Runs a MIDlet by Name/Vendor or Push port with arguments
 	 * @param midlet Current MIDlet instance
+	 * @param name MIDlet-Name
+	 * @param vendor MIDlet-Vendor
 	 * @param pushPort Push port
 	 * @param cmd Command
 	 * @return true if the MIDlet suite MUST exit
@@ -247,7 +278,10 @@ public class MIDletIntegration {
 						data.reset();
 						data.writeUTF(s);
 						dataConnection.send(data);
-						dataConnection.send(data);
+						try {
+							dataConnection.send(data);
+						} catch (Exception e) {
+						}
 						dataConnection.close();
 					} catch (IOException e) {
 						exception = e;
@@ -262,7 +296,7 @@ public class MIDletIntegration {
 			thread.start();
 			try {
 				synchronized(lock) {
-					lock.wait(5000);
+					lock.wait(4000);
 				}
 			} catch (Exception e) {
 			}
@@ -279,7 +313,7 @@ public class MIDletIntegration {
 				exception = null;
 				throw e;
 			}
-			return true;
+			return closeAfterPush;
 		} catch (Error e) {
 			throw new ProtocolNotSupportedException(e.toString());
 		}
