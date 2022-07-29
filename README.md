@@ -6,3 +6,7 @@ https://web.archive.org/web/20100619100058/http://library.forum.nokia.com/topic/
 
 MIDP 2.0 PushRegistry documentation:
 https://docs.oracle.com/javame/config/cldc/ref-impl/midp2.0/jsr118/javax/microedition/io/PushRegistry.html
+
+<b>Used now in:</b>
+- <a href="https://vk4me.curoviyx.ru">VK4ME</a>
+- <a href="http://nnp.nnchan.ru">JTube</a>
