@@ -8,5 +8,5 @@ MIDP 2.0 PushRegistry documentation:
 https://docs.oracle.com/javame/config/cldc/ref-impl/midp2.0/jsr118/javax/microedition/io/PushRegistry.html
 
 <b>Used now in:</b>
-- <a href="https://vk4me.curoviyx.ru">VK4ME</a>
-- <a href="http://nnp.nnchan.ru">JTube</a>
+- <a href="https://v4.crx.moe">VK4ME</a>
+- <a href="https://nnp.nnchan.ru/jtube">JTube</a>
