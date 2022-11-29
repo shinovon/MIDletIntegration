@@ -269,9 +269,11 @@ public class MIDletIntegration {
 						data.reset();
 						data.writeUTF(s);
 						dataConnection.send(data);
-						try {
-							dataConnection.send(data);
-						} catch (Exception e) {
+						if(Util.checkSymbian()) {
+							try {
+								dataConnection.send(data);
+							} catch (Exception e) {
+							}
 						}
 						dataConnection.close();
 					} catch (IOException e) {

@@ -117,4 +117,11 @@ public class Util {
 		String s = Integer.toHexString(i);
 		return "%" + (s.length() < 2 ? "0" : "") + s;
 	}
+
+	public static boolean checkSymbian() {
+		String platform = System.getProperty("microedition.platform");
+		return platform.indexOf("platform=S60") != -1 ||
+				System.getProperty("com.symbian.midp.serversocket.support") != null ||
+				System.getProperty("com.symbian.default.to.suite.icon") != null;
+	}
 }
