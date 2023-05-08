@@ -10,3 +10,8 @@ https://docs.oracle.com/javame/config/cldc/ref-impl/midp2.0/jsr118/javax/microed
 <b>Used now in:</b>
 - <a href="https://v4.crx.moe">VK4ME</a>
 - <a href="https://nnp.nnchan.ru/jtube">JTube</a>
+
+<b>Supported by:</b>
+- Symbian^3, Anna, Belle
+- Symbian 9.2, 9.3
+- J2ME Loader
