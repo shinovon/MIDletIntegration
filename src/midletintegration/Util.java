@@ -15,23 +15,28 @@ public class Util {
 		if(str == null) {
 			return null;
 		}
-		Hashtable ht = new Hashtable();
-		int index = str.indexOf(';');
-		boolean b = true;
-		while (b) {
-			if (index == -1) {
-				b = false;
-				index = str.length();
+		Hashtable table = new Hashtable();
+		int idx = str.indexOf(';');
+		while (idx != -1) {
+			String arg = str.substring(0, idx);
+			int idx2 = arg.indexOf("=");
+			if(idx2 != -1) {
+				table.put(arg.substring(0, idx2).trim(), arg.substring(idx2 + 1));
+			} else {
+				table.put(arg.trim(), "");
 			}
-			String token = str.substring(0, index).trim();
-			int index2 = token.indexOf("=");
-			ht.put(token.substring(0, index2).trim(), token.substring(index2 + 1));
-			if (b) {
-				str = str.substring(index + 1);
-				index = str.indexOf(';');
+			str = str.substring(idx + 1);
+			idx = str.indexOf(';');
+		}
+		if(str.length() > 0) {
+			int idx2 = str.indexOf("=");
+			if(idx2 != -1) {
+				table.put(str.substring(0, idx2).trim(), str.substring(idx2 + 1));
+			} else {
+				table.put(str.trim(), "");
 			}
 		}
-		return ht;
+		return table;
 	}
 	
 	public static String decodeURL(String s) {
@@ -120,6 +125,7 @@ public class Util {
 
 	public static boolean checkSymbian() {
 		String platform = System.getProperty("microedition.platform");
+		if(platform == null) platform = "";
 		return platform.indexOf("platform=S60") != -1 ||
 				System.getProperty("com.symbian.midp.serversocket.support") != null ||
 				System.getProperty("com.symbian.default.to.suite.icon") != null;

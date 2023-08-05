@@ -20,11 +20,8 @@ import javax.microedition.midlet.MIDlet;
  */
 public class MIDletIntegration {
 	
-	private static final String PROTOCOL = "javaapp:";
-	private static final boolean closeAfterPush = 
-			System.getProperty("com.symbian.midp.serversocket.support") == null &&
-					System.getProperty("com.symbian.default.to.suite.icon") == null &&
-					System.getProperty("microedition.platform").indexOf("platform=S60") == -1;
+	private static final String JAVAAPP_PROTOCOL = "javaapp:";
+	private static final boolean closeAfterPush = Util.checkSymbian();
 	
 	private static int instances;
 	private static DatagramConnection dataConnection;
@@ -175,7 +172,7 @@ public class MIDletIntegration {
 	
 	private static boolean startApp(MIDlet midlet, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, ConnectionNotFoundException {
 		try {
-			return midlet.platformRequest(PROTOCOL + cmd);
+			return midlet.platformRequest(JAVAAPP_PROTOCOL + cmd);
 		} catch (ConnectionNotFoundException e) {
 			if(e.getMessage() != null) {
 				if(e.getMessage().startsWith("Cannot start Java application") ||
