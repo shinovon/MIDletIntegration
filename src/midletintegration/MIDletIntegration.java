@@ -15,17 +15,27 @@ import javax.microedition.midlet.MIDlet;
  * 
  * @author Shinovon
  * @author curoviyxru (Mathew)
- * @version 1.1
+ * @version 1.2
  * 
  */
-public class MIDletIntegration {
+public class MIDletIntegration implements Runnable {
 	
 	private static final String JAVAAPP_PROTOCOL = "javaapp:";
-	private static final boolean closeAfterPush = Util.checkSymbian();
+	private static final boolean s60 = Util.checkSymbian();
 	
 	private static int instances;
 	private static DatagramConnection dataConnection;
 	private static boolean receiving;
+	
+	private int pushPort;
+	private String cmd;
+	private Object lock;
+	
+	private MIDletIntegration(int port, String cmd, Object lock) {
+		this.pushPort = port;
+		this.cmd = cmd;
+		this.lock = lock;
+	}
 	
 	/**
 	 * Checks if a MIDlet has received a new start request from another MIDlet<br>
@@ -50,10 +60,7 @@ public class MIDletIntegration {
 			if(i > instances) {
 				instances = i;
 				String cmd = System.getProperty("com.nokia.mid.cmdline");
-				if(cmd == null || cmd.length() == 0) {
-					return false;
-				}
-				return true;
+				return cmd != null && cmd.length() > 0;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -86,7 +93,6 @@ public class MIDletIntegration {
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (Exception e) {
-				
 			}
 		} else {
 			args = System.getProperty("com.nokia.mid.cmdline");
@@ -181,12 +187,9 @@ public class MIDletIntegration {
 				} else if(e.getMessage().indexOf("Invalid localapp URL") != -1 ||
 						e.getMessage().indexOf("Invalid URL") != -1) {
 					throw new ProtocolNotSupportedException(e.getMessage());
-				} else {
-					throw e;
 				}
-			} else {
-				throw e;
 			}
+			throw e;
 		}
 	}
 	
@@ -246,43 +249,19 @@ public class MIDletIntegration {
 	 * @return true if the MIDlet suite MUST exit
 	 * @throws MIDletNotFoundException if MIDlet was not found
 	 * @throws ProtocolNotSupportedException if MIDlet launch protocol not supported
+	 * @throws RuntimeException if connection thread is still running
 	 */
 	public static boolean startApp(MIDlet midlet, final int pushPort, String cmd) throws MIDletNotFoundException, ProtocolNotSupportedException, IOException {
 		if(dataConnection != null) {
-			throw new IllegalStateException();
+			throw new RuntimeException("busy");
 		}
 		exception = null;
 		try {
 			if(cmd == null) {
 				cmd = "empty=1";
 			}
-			final String s = cmd;
-			final Object lock = new Object();
-			Thread thread = new Thread() {
-				public void run() {
-					try {
-						dataConnection = (DatagramConnection) Connector.open("datagram://127.0.0.1:" + pushPort);
-						Datagram data = dataConnection.newDatagram(dataConnection.getMaximumLength());
-						data.reset();
-						data.writeUTF(s);
-						dataConnection.send(data);
-						if(Util.checkSymbian()) {
-							try {
-								dataConnection.send(data);
-							} catch (Exception e) {
-							}
-						}
-						dataConnection.close();
-					} catch (IOException e) {
-						exception = e;
-					} catch (Exception e) {
-					}
-			        dataConnection = null;
-			        synchronized(lock) {
-			        	lock.notify();
-			        }
-				}
-			};
+			Object lock = new Object();
+			Thread thread = new Thread(new MIDletIntegration(pushPort, cmd, lock));
 			thread.start();
 			try {
 				synchronized(lock) {
@@ -303,10 +282,34 @@ public class MIDletIntegration {
 				exception = null;
 				throw e;
 			}
-			return closeAfterPush;
+			return s60;
 		} catch (Error e) {
 			throw new ProtocolNotSupportedException(e.toString());
 		}
+	}
+	
+	public void run() {
+		try {
+			dataConnection = (DatagramConnection) Connector.open("datagram://127.0.0.1:" + pushPort);
+			Datagram data = dataConnection.newDatagram(dataConnection.getMaximumLength());
+			data.reset();
+			data.writeUTF(cmd);
+			dataConnection.send(data);
+			if(s60) {
+				try {
+					dataConnection.send(data);
+				} catch (Exception e) {
+				}
+			}
+			dataConnection.close();
+		} catch (IOException e) {
+			exception = e;
+		} catch (Exception e) {
+		}
+        dataConnection = null;
+        synchronized(lock) {
+        	lock.notify();
+        }
 	}
 	
 	public static void registerPush(MIDlet midlet, int port) throws ClassNotFoundException, IOException {
