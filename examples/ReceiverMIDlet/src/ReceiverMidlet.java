@@ -72,6 +72,7 @@ public class ReceiverMidlet extends MIDlet implements CommandListener {
 				String s = MIDletIntegration.getLaunchCommand();
 				Hashtable args = MIDletIntegration.getArguments(s);
 				form.append("URL: " + Util.decodeURL((String) args.get("url")) + "\n");
+				form.append("Source: " + MIDletIntegration.getLaunchSource() + "\n");
 				form.append("Full command: " + s+ "\n");
 				this.resumeRequest();
 			}

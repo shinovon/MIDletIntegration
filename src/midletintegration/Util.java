@@ -11,6 +11,13 @@ import java.util.Hashtable;
  */
 public class Util {
 	
+	public static String platform;
+
+	static {
+		platform = System.getProperty("microedition.platform");
+		if(platform == null) platform = "";
+	}
+	
 	public static Hashtable parseArgs(String str) {
 		if(str == null) {
 			return null;
@@ -122,12 +129,31 @@ public class Util {
 		String s = Integer.toHexString(i);
 		return "%" + (s.length() < 2 ? "0" : "") + s;
 	}
-
-	public static boolean checkSymbian() {
-		String platform = System.getProperty("microedition.platform");
-		if(platform == null) platform = "";
+	
+	public static boolean isS60() {
 		return platform.indexOf("platform=S60") != -1 ||
 				System.getProperty("com.symbian.midp.serversocket.support") != null ||
-				System.getProperty("com.symbian.default.to.suite.icon") != null;
+				System.getProperty("com.symbian.default.to.suite.icon") != null ||
+				checkClass("com.symbian.midp.io.protocol.http.Protocol") ||
+				checkClass("com.symbian.lcdjava.io.File");
+	}
+	
+	public static boolean isS40() {
+		return !checkClass("com.sun.midp.Main") && 
+				(platform.startsWith("Nokia") ||
+				platform.startsWith("Vertu")) &&
+				(
+						checkClass("javax.microedition.midlet.MIDletProxy") || 
+						checkClass("com.nokia.mid.impl.isa.jam.Jam")
+				);
+	}
+	
+	private static boolean checkClass(String s) {
+		try {
+			Class.forName(s);
+			return true;
+		} catch (Exception e) {
+		}
+		return false;
 	}
 }
