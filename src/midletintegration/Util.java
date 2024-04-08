@@ -131,7 +131,9 @@ public class Util {
 	}
 	
 	public static boolean isS60() {
+		// >= s60 v3.2
 		return platform.indexOf("platform=S60") != -1 ||
+				// <= s60 v3.1
 				System.getProperty("com.symbian.midp.serversocket.support") != null ||
 				System.getProperty("com.symbian.default.to.suite.icon") != null ||
 				checkClass("com.symbian.midp.io.protocol.http.Protocol") ||

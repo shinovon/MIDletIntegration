@@ -35,6 +35,8 @@ public class ReceiverMidlet extends MIDlet implements CommandListener {
 
 	protected void startApp() {
 		if(started) {
+			// Check launch on app resume
+			// Nokia-MIDlet-Background-Event property makes this work on Symbian^3
 			check();
 			return;
 		}

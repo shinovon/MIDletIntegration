@@ -54,17 +54,20 @@ public class MIDletIntegration implements Runnable {
 	public static boolean checkLaunch() {
 		if(receiving) return false;
 		try {
+			// Check if there is push request
 			if(PushRegistry.listConnections(true).length > 0) {
 				return true;
 			}
 		} catch (Throwable e) {
 		}
 		if(s40) {
+			// MIDlet on S40 can be launched only once during its life cycle
 			return (instances++) == 0 && System.getProperty("launchcmd") != null;
 		}
 		if(!supportsJavaApp) {
 			return false;
 		}
+		// Symbian^3 method
 		try {
 			int i = Integer.parseInt(System.getProperty("com.nokia.mid.cmdline.instance"));
 			if(i > instances) {
@@ -93,6 +96,7 @@ public class MIDletIntegration implements Runnable {
 		} catch (Throwable e) {
 		}
 		if(connections != null && connections.length > 0) {
+			// Read push data
 			try {
 				DatagramConnection conn = (DatagramConnection) Connector.open(connections[0]);
 				Datagram data = conn.newDatagram(conn.getMaximumLength());
@@ -121,12 +125,11 @@ public class MIDletIntegration implements Runnable {
 	 * 
 	 * @see {@link #getLaunchCommand()}
 	 * @return Launcher app, may be null
+	 * @since 1.3
 	 */
 	public static String getLaunchSource() {
 		String r = null;
 		l: {
-			if((r = System.getProperty("from")) != null)
-				break l;
 			if((r = System.getProperty("launchfrom")) != null)
 				break l;
 			int i;
@@ -150,7 +153,8 @@ public class MIDletIntegration implements Runnable {
 	}
 	
 	/**
-	 * Launches a MIDlet by Name/Vendor
+	 * Launches a MIDlet by Name/Vendor<br>
+	 * Same as calling <code>startApp(midlet, name, vendor, null, null);</code>
 	 * @see {@link #startApp(MIDlet, String, String, String)}
 	 * @see {@link javax.microedition.midlet.MIDlet#platformRequest(String)}
 	 * @param midlet Current MIDlet instance
@@ -167,7 +171,8 @@ public class MIDletIntegration implements Runnable {
 	}
 	
 	/**
-	 * Launches a MIDlet by Name/Vendor with arguments
+	 * Launches a MIDlet by Name/Vendor with arguments<br>
+	 * Same as calling <code>startApp(midlet, name, vendor, null, cmd);</code>
 	 * @see {@link javax.microedition.midlet.MIDlet#platformRequest(String)}
 	 * @param midlet Current MIDlet instance
 	 * @param name MIDlet-Name
@@ -184,7 +189,7 @@ public class MIDletIntegration implements Runnable {
 	}
 	
 	/**
-	 * Launches a MIDlet UID or Name/Vendor with arguments
+	 * Launches a MIDlet by UID or Name/Vendor with arguments
 	 * @see {@link javax.microedition.midlet.MIDlet#platformRequest(String)}
 	 * @param midlet Current MIDlet instance
 	 * @param name MIDlet-Name
@@ -270,8 +275,8 @@ public class MIDletIntegration implements Runnable {
 					throw new IllegalArgumentException("name and vendor parameters are required");
 				}
 				String cmd2 = (cmd != null && cmd.length() > 0 ? cmd : "empty=1");
-				// s40v3-v6 method, doesn't work on ashas with xpress browser
-				// location.href="localapp://jam/launch?midlet-vendor=<vendor>;midlet-nam=<name>;launchcmd=<cmd>;launchfrom=<from>"
+				// s40v3-v6 method, doesn't work on Ashas with xpress browser
+				// location.href="localapp://jam/launch?midlet-vendor=<vendor>;midlet-name=<name>;launchcmd=<cmd>;launchfrom=<from>"
 				midlet.platformRequest(S40_LOCALAPP_URL +
 						"name=" + Util.encodeURL(name) +
 						"&vendor=" + Util.encodeURL(vendor) +
@@ -286,9 +291,18 @@ public class MIDletIntegration implements Runnable {
 			if(supportsJavaApp || pushPort == 0) {
 				String cmd2 = (cmd != null && cmd.length() > 0 ? Util.encodeURL(cmd) : "empty=1");
 				if(uid != null && supportsJavaApp) {
-					return _javaAppRequest(midlet, "midlet-uid=" + Util.encodeURL(uid) + ";" + cmd2);
+					return _javaAppRequest(midlet,
+							"midlet-uid=" + Util.encodeURL(uid) +
+							";" + cmd2 +
+							";launchfrom=" + Util.encodeURL(from)
+							);
 				}
-				return _javaAppRequest(midlet, "midlet-name=" + Util.encodeURL(name) + ";midlet-vendor=" + Util.encodeURL(vendor) + ";" + cmd2);
+				return _javaAppRequest(midlet,
+						"midlet-name=" + Util.encodeURL(name) +
+						";midlet-vendor=" + Util.encodeURL(vendor) +
+						";" + cmd2 +
+						";launchfrom=" + Util.encodeURL(from)
+						);
 			}
 		} catch(MIDletNotFoundException e) {
 			throw e;
