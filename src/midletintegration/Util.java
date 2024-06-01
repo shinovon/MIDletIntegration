@@ -150,6 +150,10 @@ public class Util {
 				);
 	}
 	
+	public static boolean isJ2MELoader() {
+		return checkClass("javax.microedition.shell.MicroActivity");
+	}
+	
 	private static boolean checkClass(String s) {
 		try {
 			Class.forName(s);

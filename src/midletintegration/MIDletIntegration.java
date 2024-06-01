@@ -23,7 +23,6 @@ public class MIDletIntegration implements Runnable {
 	private static final String JAVAAPP_PROTOCOL = "localapp://jam/launch?";
 	private static final String S40_LOCALAPP_URL = "http://nnp.nnchan.ru/nns/localapp.php?";
 	
-	private static final boolean supportsJavaApp = System.getProperty("com.nokia.mid.cmdline.instance") != null || Util.platform.indexOf("java_build_version=2.") != -1;
 	private static final boolean s60 = Util.isS60();
 	private static final boolean s40 = Util.isS40();
 	
@@ -64,7 +63,7 @@ public class MIDletIntegration implements Runnable {
 			// MIDlet on S40 can be launched only once during its life cycle
 			return (instances++) == 0 && System.getProperty("launchcmd") != null;
 		}
-		if(!supportsJavaApp) {
+		if(System.getProperty("com.nokia.mid.cmdline.instance") == null) {
 			return false;
 		}
 		// Symbian^3 method
@@ -269,6 +268,7 @@ public class MIDletIntegration implements Runnable {
 		if(from == null) {
 			midlet.getAppProperty("MIDlet-Name");
 		}
+		boolean supportsJavaApp = System.getProperty("com.nokia.mid.cmdline.instance") != null;
 		try {
 			if(s40) {
 				if(name == null || vendor == null) {
@@ -309,6 +309,11 @@ public class MIDletIntegration implements Runnable {
 		} catch (IOException e) {
 			if(s40 || pushPort == 0) throw e;
 		}
+		if(s40 || Util.isJ2MELoader()) {
+			throw new ProtocolNotSupportedException();
+		}
+		if(pushPort <= 0)
+			throw new IllegalArgumentException("pushPort");
 		return _push(midlet, pushPort, cmd);
 	}
 	
@@ -318,12 +323,15 @@ public class MIDletIntegration implements Runnable {
 		try {
 			return midlet.platformRequest(JAVAAPP_PROTOCOL + cmd);
 		} catch (ConnectionNotFoundException e) {
-			if(e.getMessage() != null) {
-				if(e.getMessage().startsWith("Cannot start Java application") ||
-						e.getMessage().indexOf("following error: -12") != -1) {
+			String msg = e.getMessage();
+			if(msg != null) {
+				if(msg.startsWith("Cannot start Java application") ||
+						msg.indexOf("following error: -12") != -1 ||
+						msg.indexOf("was not found") != -1
+						) {
 					throw new MIDletNotFoundException(e.getMessage());
-				} else if(e.getMessage().indexOf("Invalid localapp URL") != -1 ||
-						e.getMessage().indexOf("Invalid URL") != -1) {
+				} else if(msg.indexOf("Invalid localapp URL") != -1 ||
+						msg.indexOf("Invalid URL") != -1) {
 					throw new ProtocolNotSupportedException(e.getMessage());
 				}
 			}
@@ -334,7 +342,6 @@ public class MIDletIntegration implements Runnable {
 	private static boolean _push(MIDlet midlet, int pushPort, String cmd)
 			throws MIDletNotFoundException, ProtocolNotSupportedException, IOException
 	{
-
 		if(dataConnection != null) {
 			throw new IOException("busy");
 		}
@@ -347,8 +354,9 @@ public class MIDletIntegration implements Runnable {
 			Thread thread = new Thread(new MIDletIntegration(pushPort, cmd, lock));
 			thread.start();
 			synchronized(lock) {
-				lock.wait(4000);
+				lock.wait(5000);
 			}
+			// throw MIDletNotFoundException on timeout
 			if(dataConnection != null) {
 				thread.interrupt();
 				try {
@@ -358,9 +366,11 @@ public class MIDletIntegration implements Runnable {
 				throw new MIDletNotFoundException();
 			}
 			if(exception != null) {
-				IOException e = (IOException) exception;
+				Exception e = exception;
 				exception = null;
-				throw e;
+				if(e instanceof IOException)
+					throw (IOException) e;
+				throw new ConnectionNotFoundException(e.toString());
 			}
 			// no need exit on S60
 			return !s60;
@@ -386,9 +396,8 @@ public class MIDletIntegration implements Runnable {
 				}
 			}
 			dataConnection.close();
-		} catch (IOException e) {
-			exception = e;
 		} catch (Exception e) {
+			exception = e;
 		}
         dataConnection = null;
         synchronized(lock) {

@@ -3,10 +3,9 @@ package midletintegration;
 import java.io.IOException;
 
 /**
- * Part of MIDlet Integration library
+ * Thrown if application launching is not supported
  * 
  * @author Shinovon
- * 
  */
 public class ProtocolNotSupportedException extends IOException {
 

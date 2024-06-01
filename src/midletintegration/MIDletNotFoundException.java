@@ -3,7 +3,7 @@ package midletintegration;
 import java.io.IOException;
 
 /**
- * Part of MIDlet Integration library
+ * Thrown if matched application cannot be found
  * 
  * @author Shinovon
  * 
