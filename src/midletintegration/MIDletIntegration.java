@@ -50,14 +50,16 @@ public class MIDletIntegration implements Runnable {
 	 * </p>
 	 * @return true if new arguments have been received since the last check
 	 */
-	public static boolean checkLaunch() {
+	public static boolean checkLaunch(boolean usePush) {
 		if(receiving) return false;
-		try {
-			// Check if there is push request
-			if(PushRegistry.listConnections(true).length > 0) {
-				return true;
+		if (usePush) {
+			try {
+				// Check if there is push request
+				if(PushRegistry.listConnections(true).length > 0) {
+					return true;
+				}
+			} catch (Throwable e) {
 			}
-		} catch (Throwable e) {
 		}
 		if(s40) {
 			// MIDlet on S40 can be launched only once during its life cycle
@@ -81,6 +83,13 @@ public class MIDletIntegration implements Runnable {
 	}
 	
 	/**
+	 * @see {@link #checkLaunch(boolean)}
+	 */
+	public static boolean checkLaunch() {
+		return checkLaunch(true);
+	}
+	
+	/**
 	 * Get received command
 	 * 
 	 * @return Received command, may be empty string
@@ -88,28 +97,28 @@ public class MIDletIntegration implements Runnable {
 	 */
 	public static String getLaunchCommand() {
 		receiving = true;
-		String cmd = null;
-		String[] connections = null;
-		try {
-			connections = PushRegistry.listConnections(true);
-		} catch (Throwable e) {
+		String cmd = System.getProperty("com.nokia.mid.cmdline");
+		if(cmd == null) {
+			cmd = System.getProperty("launchcmd");
 		}
-		if(connections != null && connections.length > 0) {
-			// Read push data
+		if (cmd == null) {
+			String[] connections = null;
 			try {
-				DatagramConnection conn = (DatagramConnection) Connector.open(connections[0]);
-				Datagram data = conn.newDatagram(conn.getMaximumLength());
-				conn.receive(data);
-				cmd = data.readUTF();
-				conn.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (Exception e) {
+				connections = PushRegistry.listConnections(true);
+			} catch (Throwable e) {
 			}
-		} else {
-			cmd = System.getProperty("com.nokia.mid.cmdline");
-			if(cmd == null) {
-				cmd = System.getProperty("launchcmd");
+			if(connections != null && connections.length > 0) {
+				// Read push data
+				try {
+					DatagramConnection conn = (DatagramConnection) Connector.open(connections[0]);
+					Datagram data = conn.newDatagram(conn.getMaximumLength());
+					conn.receive(data);
+					cmd = data.readUTF();
+					conn.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+				}
 			}
 		}
 		if("empty=1".equals(cmd)) {
